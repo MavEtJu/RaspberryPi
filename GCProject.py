@@ -9,8 +9,6 @@ gpio.setmode(gpio.BCM)
 keyboard = GCKeyboard(gpio)
 sounds = GCSounds()
 
-process = "global"
-
 DIALSTATE_ONHOOK = 0
 DIALSTATE_DIALTONE = 1
 DIALSTATE_NUMBERCOLLECTING = 2
@@ -19,11 +17,15 @@ DIALSTATE_CONNECTED = 4
 DIALSTATE_NEED_ONHOOK = 5
 
 GAMESTATE_MAKING_CALL = 0
-GAMESTATE_CALLTO_000 = 1
-GAMESTATE_CALLTO_911 = 2
-GAMESTATE_CALLTO_PIZZERIA = 3
-GAMESTATE_CALLTO_MAVETJU = 4
-GAMESTATE_CALLTO_RANDOM_ENCOUNTER = 4
+GAMESTATE_CALLTO_000_REAL = 1
+GAMESTATE_CALLTO_000_TOOEARLY = 2
+GAMESTATE_CALLTO_911 = 3
+GAMESTATE_CALLTO_PIZZERIA_REAL = 4
+GAMESTATE_CALLTO_PIZZERIA_2NDTIME = 5
+GAMESTATE_CALLTO_MAVETJU = 6
+GAMESTATE_CALLTO_RANDOM_ENCOUNTER = 7
+
+CONV_000_TOOEARLY = 0
 
 CALLSTATE_000_SHOWOPTIONS = 0
 CALLSTATE_000_GETOPTION = 1
@@ -45,6 +47,10 @@ while 1:
 
 	# Waiting for the handset to be lifted
 	if a[0] == 0:
+		if dialState != DIALSTATE_ONHOOK:
+			if sounds.isplaying():
+				print
+		sounds.stopplaying()
 		dialState = DIALSTATE_ONHOOK
 		counter = 0
 		time.sleep(0.1)
@@ -61,7 +67,7 @@ while 1:
 			dialState = DIALSTATE_DIALTONE
 			counter = 0
 			number = ""
-			sounds.dialtone(1)
+			sounds.dialtone()
 			continue
 
 	if gameState == GAMESTATE_MAKING_CALL:
@@ -82,7 +88,7 @@ while 1:
 		if key is not None and keyboard.changed():
 			if dialState == DIALSTATE_DIALTONE:
 				dialState = DIALSTATE_NUMBERCOLLECTING
-				sounds.dialtone(0)
+				sounds.stopplaying()
 			sounds.dtmf(key)
 			number += key
 			if key == "*" or key == "#":
@@ -98,7 +104,7 @@ while 1:
 
 			if number == "000":
 				dialState = DIALSTATE_CALLING
-				gameState = GAMESTATE_CALLTO_000
+				gameState = GAMESTATE_CALLTO_000_REAL
 				callState000 = CALLSTATE_000_SHOWOPTIONS
 				sounds.ringing()
 				continue
@@ -134,10 +140,10 @@ while 1:
 
 		continue
 
-	if gameState == GAMESTATE_CALLTO_000:
+	if gameState == GAMESTATE_CALLTO_000_REAL:
 		print "callState000:%d" % callState000,
 
-		if sounds.playing():
+		if sounds.isplaying():
 			print "Still playing"
 			time.sleep(0.1)
 			continue
