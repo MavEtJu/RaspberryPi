@@ -21,7 +21,7 @@ GAMESTATE_CALLTO_000_REAL = 1
 GAMESTATE_CALLTO_000_TOOEARLY = 2
 GAMESTATE_CALLTO_911 = 3
 GAMESTATE_CALLTO_PIZZERIA_REAL = 4
-GAMESTATE_CALLTO_PIZZERIA_2NDTIME = 5
+GAMESTATE_CALLTO_PIZZERIA_AGAIN = 5
 GAMESTATE_CALLTO_MAVETJU = 6
 GAMESTATE_CALLTO_RANDOM_ENCOUNTER = 7
 
@@ -36,6 +36,8 @@ CALLSTATE_000_POLICE = 4
 dialState = DIALSTATE_ONHOOK
 gameState = GAMESTATE_MAKING_CALL
 callState000 = CALLSTATE_000_SHOWOPTIONS
+flagHasCalledPizzeria = False
+flagNeedsToCall000 = False
 
 counter = 0
 number = ""
@@ -59,7 +61,7 @@ while 1:
 	# Timeout after 30 seconds of waiting for the number
 	if dialState == DIALSTATE_NEED_ONHOOK:
 		time.sleep(0.1)
-		continue;
+		continue
 
 	# Handset lifted, generate dialtone if needed and reset dialing info
 	if a[0] == 1:
@@ -99,13 +101,26 @@ while 1:
 		if dialState == DIALSTATE_NUMBERCOLLECTING:
 			if number == "0011":
 				dialState = DIALSTATE_NEED_ONHOOK
-				sounds.noOverseasCalls()
+				sounds.error()
 				continue
 
 			if number == "000":
 				dialState = DIALSTATE_CALLING
-				gameState = GAMESTATE_CALLTO_000_REAL
-				callState000 = CALLSTATE_000_SHOWOPTIONS
+				if flagNeedsToCall000 is True:
+					gameState = GAMESTATE_CALLTO_000_REAL
+					callState000 = CALLSTATE_000_SHOWOPTIONS
+				else:
+					gameState = GAMESTATE_CALLTO_000_TOOEARLY
+				sounds.ringing()
+				continue
+
+			if number == "0295252525":
+				dialState = DIALSTATE_CALLING
+				if flagHasCalledPizzeria is False:
+					gameState = GAMESTATE_CALLTO_PIZZERIA_REAL
+					callState000 = CALLSTATE_000_SHOWOPTIONS
+				else:
+					gameState = GAMESTATE_CALLTO_PIZZERIA_AGAIN
 				sounds.ringing()
 				continue
 
@@ -124,7 +139,7 @@ while 1:
 			if len(number) == 8 and number[0:1] != "0":
 				dialState = DIALSTATE_CALLING
 				gameState = GAMESTATE_CALLTO_RANDOM_ENCOUNTER
-				continue;
+				continue
 
 		print number,
 
@@ -135,8 +150,8 @@ while 1:
 			if dialState == DIALSTATE_DIALTONE:
 				sounds.error()
 			if dialState == DIALSTATE_NUMBERCOLLECTING:
-				sounds.incompleteNumber()
-			continue			
+				sounds.error()
+			continue
 
 		continue
 
@@ -187,4 +202,3 @@ while 1:
 
 	print "Unknown gamestate:%d" % gameState
 	exit(0)
-

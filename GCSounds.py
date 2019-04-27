@@ -1,7 +1,6 @@
 import os
 import signal
 import subprocess
-import time
 from threading import Thread, Semaphore
 
 class GCSounds:
@@ -13,7 +12,7 @@ class GCSounds:
 
 		return
 
-	def playy(self, p):
+	def playy(self):
 		self.processlock.acquire()
 		self.process = subprocess.Popen(["aplay", "sounds/" + self.filename + ".wav"])
 		self.processlock.release()
@@ -34,10 +33,10 @@ class GCSounds:
 
 	def isplaying(self):
 		self.processlock.acquire()
-		if self.process == None:
+		if self.process is None:
 			self.processlock.release()
 			return False
-		if self.process == True:
+		if self.process is True:
 			self.processlock.release()
 			return True
 		try:
@@ -47,7 +46,7 @@ class GCSounds:
 			return True
 		rv = self.process.returncode
 		self.processlock.release()
-		return (rv is None)
+		return rv is None
 
 	def stopplaying(self):
 		self.processlock.acquire()
@@ -77,7 +76,7 @@ class GCSounds:
 	def dialtone(self):
 		self.play("dialtone-30s")
 		return
-	
+
 	def error(self):
-		self.play("error-1s");
+		self.play("error-1s")
 		return
