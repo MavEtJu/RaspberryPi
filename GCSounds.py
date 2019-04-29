@@ -1,4 +1,5 @@
 import os
+import random
 import signal
 import subprocess
 from threading import Thread, Semaphore
@@ -9,7 +10,6 @@ class GCSounds:
 		self.filename = None
 		self.process = None
 		self.processlock = Semaphore()
-
 		return
 
 	def playy(self):
@@ -23,15 +23,17 @@ class GCSounds:
 		return
 
 	def play(self, filename):
+		if self.isPlaying():
+			self.stopPlaying()
 		self.filename = filename
 		self.processlock.acquire()
 		self.process = True
 		self.processlock.release()
-		T = Thread(target = self.playy, args=[self.process])
+		T = Thread(target = self.playy)
 		T.start()
 		return
 
-	def isplaying(self):
+	def isPlaying(self):
 		self.processlock.acquire()
 		if self.process is None:
 			self.processlock.release()
@@ -48,7 +50,7 @@ class GCSounds:
 		self.processlock.release()
 		return rv is None
 
-	def stopplaying(self):
+	def stopPlaying(self):
 		self.processlock.acquire()
 		if self.process is None:
 			self.processlock.release()
@@ -70,6 +72,16 @@ class GCSounds:
 		return
 
 	def ringing(self):
+		a = random.randint(0, 2)
+		if a == 0:
+			self.play("ringing-3.5s")
+			return
+		if a == 1:
+			self.play("ringing-4.5s")
+			return
+		if a == 2:
+			self.play("ringing-6.5s")
+			return
 		self.play("ringing-3.5s")
 		return
 

@@ -1,3 +1,4 @@
+import random
 import time
 import RPi.GPIO as gpio
 from GCKeyboard import GCKeyboard
@@ -8,6 +9,8 @@ from GCSounds import GCSounds
 gpio.setmode(gpio.BCM)
 keyboard = GCKeyboard(gpio)
 sounds = GCSounds()
+
+random.seed()
 
 DIALSTATE_ONHOOK = 0
 DIALSTATE_DIALTONE = 1
@@ -22,10 +25,7 @@ GAMESTATE_CALLTO_000_TOOEARLY = 2
 GAMESTATE_CALLTO_911 = 3
 GAMESTATE_CALLTO_PIZZERIA_REAL = 4
 GAMESTATE_CALLTO_PIZZERIA_AGAIN = 5
-GAMESTATE_CALLTO_MAVETJU = 6
-GAMESTATE_CALLTO_RANDOM_ENCOUNTER = 7
-
-CONV_000_TOOEARLY = 0
+GAMESTATE_CALLTO_RANDOM_ENCOUNTER = 6
 
 CALLSTATE_000_SHOWOPTIONS = 0
 CALLSTATE_000_GETOPTION = 1
@@ -50,9 +50,9 @@ while 1:
 	# Waiting for the handset to be lifted
 	if a[0] == 0:
 		if dialState != DIALSTATE_ONHOOK:
-			if sounds.isplaying():
+			if sounds.isPlaying():
 				print
-		sounds.stopplaying()
+		sounds.stopPlaying()
 		dialState = DIALSTATE_ONHOOK
 		counter = 0
 		time.sleep(0.1)
@@ -67,6 +67,7 @@ while 1:
 	if a[0] == 1:
 		if dialState == DIALSTATE_ONHOOK:
 			dialState = DIALSTATE_DIALTONE
+			gameState = GAMESTATE_MAKING_CALL
 			counter = 0
 			number = ""
 			sounds.dialtone()
@@ -90,8 +91,10 @@ while 1:
 		if key is not None and keyboard.changed():
 			if dialState == DIALSTATE_DIALTONE:
 				dialState = DIALSTATE_NUMBERCOLLECTING
-				sounds.stopplaying()
+				sounds.stopPlaying()
 			sounds.dtmf(key)
+			while sounds.isPlaying():
+				time.sleep(0.1)
 			number += key
 			if key == "*" or key == "#":
 				dialState = DIALSTATE_NEED_ONHOOK
@@ -114,7 +117,7 @@ while 1:
 				sounds.ringing()
 				continue
 
-			if number == "0295252525":
+			if number == "123":
 				dialState = DIALSTATE_CALLING
 				if flagHasCalledPizzeria is False:
 					gameState = GAMESTATE_CALLTO_PIZZERIA_REAL
@@ -127,12 +130,6 @@ while 1:
 			if number == "911":
 				dialState = DIALSTATE_CALLING
 				gameState = GAMESTATE_CALLTO_911
-				sounds.ringing()
-				continue
-
-			if number == "0430150894":
-				dialState = DIALSTATE_CALLING
-				gameState = GAMESTATE_CALLTO_MAVETJU
 				sounds.ringing()
 				continue
 
@@ -155,10 +152,15 @@ while 1:
 
 		continue
 
+	if gameState == GAMESTATE_CALLTO_000_TOOEARLY:
+		sounds.play("000-tooearly")
+		dialState = DIALSTATE_NEED_ONHOOK
+		continue
+
 	if gameState == GAMESTATE_CALLTO_000_REAL:
 		print "callState000:%d" % callState000,
 
-		if sounds.isplaying():
+		if sounds.isPlaying():
 			print "Still playing"
 			time.sleep(0.1)
 			continue
@@ -199,6 +201,42 @@ while 1:
 
 		print "Unknown callState000:%d" % callState000
 		exit(0)
+
+	if gameState == GAMESTATE_CALLTO_911:
+		sounds.play("911")
+		dialState = DIALSTATE_NEED_ONHOOK
+		continue
+
+	if gameState == GAMESTATE_CALLTO_PIZZERIA_REAL:
+		sounds.play("pizzeria-real")
+		dialState = DIALSTATE_NEED_ONHOOK
+		continue
+
+	if gameState == GAMESTATE_CALLTO_PIZZERIA_AGAIN:
+		sounds.play("pizzeria-again")
+		dialState = DIALSTATE_NEED_ONHOOK
+		continue
+
+	if gameState == GAMESTATE_CALLTO_RANDOM_ENCOUNTER:
+		dialState = DIALSTATE_NEED_ONHOOK
+
+		a = random.randint(0, 10)
+		if a < 9:
+			sounds.play("random-ringout")
+			continue
+
+		randoms = [
+			"random-fax",
+			"random-thenumberyouhavedialed",
+			"random-areyoumymummy",
+			"random-ELOtelephoneline",
+			"random-OffTheWall",
+			"random-R2D2",
+			"random-BlondieHangingOnTheTelephone",
+			"random-voicemail"
+		]
+		sounds.play(randoms[random.randint(0, len(randoms))])
+		continue
 
 	print "Unknown gamestate:%d" % gameState
 	exit(0)
