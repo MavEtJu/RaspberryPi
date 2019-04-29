@@ -92,3 +92,7 @@ class GCSounds:
 	def error(self):
 		self.play("error-1s")
 		return
+
+	def reorder(self):
+		self.play("reorder")
+		return

@@ -60,6 +60,8 @@ while 1:
 
 	# Timeout after 30 seconds of waiting for the number
 	if dialState == DIALSTATE_NEED_ONHOOK:
+		if sounds.isPlaying() is not True:
+			sounds.reorder()
 		time.sleep(0.1)
 		continue
 
@@ -153,7 +155,7 @@ while 1:
 		continue
 
 	if gameState == GAMESTATE_CALLTO_000_TOOEARLY:
-		sounds.play("000-tooearly")
+		sounds.play("placeholder-000tooearly")
 		dialState = DIALSTATE_NEED_ONHOOK
 		continue
 
@@ -203,17 +205,17 @@ while 1:
 		exit(0)
 
 	if gameState == GAMESTATE_CALLTO_911:
-		sounds.play("911")
+		sounds.play("placeholder-911")
 		dialState = DIALSTATE_NEED_ONHOOK
 		continue
 
 	if gameState == GAMESTATE_CALLTO_PIZZERIA_REAL:
-		sounds.play("pizzeria-real")
+		sounds.play("placeholder-pizzeriareal")
 		dialState = DIALSTATE_NEED_ONHOOK
 		continue
 
 	if gameState == GAMESTATE_CALLTO_PIZZERIA_AGAIN:
-		sounds.play("pizzeria-again")
+		sounds.play("placeholder-pizzeria2ndtime")
 		dialState = DIALSTATE_NEED_ONHOOK
 		continue
 
