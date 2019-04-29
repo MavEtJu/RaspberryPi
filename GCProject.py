@@ -32,6 +32,15 @@ CALLSTATE_000_GETOPTION = 1
 CALLSTATE_000_AMBULANCE = 2
 CALLSTATE_000_FIREBRIGADE = 3
 CALLSTATE_000_POLICE = 4
+CALLSTATE_000_POLICE_INTRO = 12
+CALLSTATE_000_POLICE_DOYOUWANTDISCLAIMER = 9
+CALLSTATE_000_POLICE_DOYOUWANTDISCLAIMER_RESPONSE = 10
+CALLSTATE_000_POLICE_SHOWDISCLAIMER = 13
+CALLSTATE_000_POLICE_ACCEPTDISCLAIMER = 5
+CALLSTATE_000_POLICE_DISCLAIMERACCEPTED = 7
+CALLSTATE_000_POLICE_CALLBACK_NOTUS = 5
+CALLSTATE_000_POLICE_CALLBACK_US = 6
+CALLSTATE_000_POLICE_FINISHED = 11
 
 dialState = DIALSTATE_ONHOOK
 gameState = GAMESTATE_MAKING_CALL
@@ -119,7 +128,7 @@ while 1:
 				sounds.ringing()
 				continue
 
-			if number == "123":
+			if number == "888":
 				dialState = DIALSTATE_CALLING
 				if flagHasCalledPizzeria is False:
 					gameState = GAMESTATE_CALLTO_PIZZERIA_REAL
@@ -159,51 +168,6 @@ while 1:
 		dialState = DIALSTATE_NEED_ONHOOK
 		continue
 
-	if gameState == GAMESTATE_CALLTO_000_REAL:
-		print "callState000:%d" % callState000,
-
-		if sounds.isPlaying():
-			print "Still playing"
-			time.sleep(0.1)
-			continue
-
-		if callState000 == CALLSTATE_000_SHOWOPTIONS:
-			sounds.play("000-options")
-			callState000 = CALLSTATE_000_GETOPTION
-			continue
-
-		if callState000 == CALLSTATE_000_GETOPTION:
-			key = keyboard.decode()
-			if key is None:
-				continue
-			if key == "1":
-				callState000 = CALLSTATE_000_AMBULANCE
-				continue
-			if key == "2":
-				callState000 = CALLSTATE_000_FIREBRIGADE
-				continue
-			if key == "3":
-				callState000 = CALLSTATE_000_POLICE
-				continue
-			sounds.play("000-options")
-			time.sleep(0.1)
-			continue
-
-		if callState000 == CALLSTATE_000_AMBULANCE:
-			time.sleep(0.1)
-			continue
-
-		if callState000 == CALLSTATE_000_FIREBRIGADE:
-			time.sleep(0.1)
-			continue
-
-		if callState000 == CALLSTATE_000_POLICE:
-			time.sleep(0.1)
-			continue
-
-		print "Unknown callState000:%d" % callState000
-		exit(0)
-
 	if gameState == GAMESTATE_CALLTO_911:
 		sounds.play("placeholder-911")
 		dialState = DIALSTATE_NEED_ONHOOK
@@ -211,6 +175,8 @@ while 1:
 
 	if gameState == GAMESTATE_CALLTO_PIZZERIA_REAL:
 		sounds.play("placeholder-pizzeriareal")
+		flagHasCAlledPizzeria = True
+		flagNeedsToCall000 = True
 		dialState = DIALSTATE_NEED_ONHOOK
 		continue
 
@@ -239,6 +205,122 @@ while 1:
 		]
 		sounds.play(randoms[random.randint(0, len(randoms))])
 		continue
+
+	if gameState == GAMESTATE_CALLTO_000_REAL:
+		print "callState000:%d" % callState000,
+
+		if sounds.isPlaying():
+			print "Still playing"
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_SHOWOPTIONS:
+			sounds.play("placeholder-000real")
+			callState000 = CALLSTATE_000_GETOPTION
+			continue
+
+		if callState000 == CALLSTATE_000_GETOPTION:
+			key = keyboard.decode()
+			if key is None:
+				continue
+			if key == "1":
+				callState000 = CALLSTATE_000_AMBULANCE
+				continue
+			if key == "2":
+				callState000 = CALLSTATE_000_FIREBRIGADE
+				continue
+			if key == "3":
+				callState000 = CALLSTATE_000_POLICE_INTRO
+				continue
+			sounds.play("000-options")
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_AMBULANCE:
+			sounds.play("000-ambulance")
+			dialState = DIALSTATE_NEED_ONHOOK
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_FIREBRIGADE:
+			sounds.play("000-firebrigade")
+			dialState = DIALSTATE_NEED_ONHOOK
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_INTRO:
+			sounds.play("000-police-intro")
+			callState000 = CALLSTATE_000_POLICE_DOYOUWANTDISCLAIMER
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_DOYOUWANTDISCLAIMER:
+			sounds.play("000-police-doyouwantdisclaimer")
+			callState000 = CALLSTATE_000_POLICE_DOYOUWANTDISCLAIMER_RESPONSE
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_DOYOUWANTDISCLAIMER_RESPONSE:
+			key = keyboard.decode()
+			if key is None:
+				continue
+			if key == "1":
+				callState000 = CALLSTATE_000_POLICE_SHOWDISCLAIMER
+				continue
+			if key == "2":
+				callState000 = CALLSTATE_000_POLICE_DISCLAIMERACCEPTED
+				continue
+			callState000 = CALLSTATE_000_POLICE_DOYOUWANTDISCLAIMER
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_SHOWDISCLAIMER:
+			sounds.play("000-police-disclaimer")
+			callState000 = CALLSTATE_000_POLICE_ACCEPTDISCLAIMER
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_ACCEPTDISCLAIMER:
+			key = keyboard.decode()
+			if key is None:
+				continue
+			if key == "1":
+				callState000 = CALLSTATE_000_POLICE_DISCLAIMERACCEPTED
+				continue
+			if key == "2":
+				callState000 = CALLSTATE_000_POLICE_DISCLAIMERACCEPTED
+				continue
+			callState000 = CALLSTATE_000_POLICE_SHOWDISCLAIMER
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_ACCEPTDISCLAIMER:
+			sounds.play("000-police-afterdisclaimer")
+			dialState = DIALSTATE_NEED_ONHOOK
+			callState000 = CALLSTATE_000_POLICE_CALLBACK_NOTUS
+			time.sleep(0.1)
+
+		if callState000 == CALLSTATE_000_POLICE_CALLBACK_NOTUS:
+			sounds.play("000-police-callback-others")
+			dialState = DIALSTATE_NEED_ONHOOK
+			callState000 = CALLSTATE_000_POLICE_CALLBACK_US
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_CALLBACK_US:
+			sounds.play("000-police-callback-us")
+			dialState = DIALSTATE_NEED_ONHOOK
+			callState000 = CALLSTATE_000_POLICE_FINISHED
+			time.sleep(0.1)
+			continue
+
+		if callState000 == CALLSTATE_000_POLICE_FINISHED:
+			sounds.play("placeholder-000tooearly")
+			time.sleep(0.1)
+			continue
+
+		print "Unknown callState000:%d" % callState000
+		exit(0)
 
 	print "Unknown gamestate:%d" % gameState
 	exit(0)
